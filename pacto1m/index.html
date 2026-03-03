@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>PACTO 1M v3.2</title>
+<style>
+:root{--bg:#F7F6F3;--sf:#FFF;--bd:#E2DED6;--bl:#EEEAE3;--ac:#C41E1E;--ad:#961616;--as:#FEF1F1;--go:#8B6914;--gb:#FDF8E8;--gc:#E6D084;--gn:#1B7A3D;--gnb:#EDFBF2;--gnc:#7ADB9F;--bu:#1E4FAF;--bb:#EEF3FF;--or:#C4641E;--ob:#FFF4EB;--tx:#1A1A1A;--md:#4A4A4A;--mu:#7A7A7A;--dm:#B0A99F;--dg:#DC2626;--db:#FEF2F2;--cr:#6B21A8;--crb:#F5F0FF;--crc:#C4B5FD}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:'Helvetica Neue',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--tx);max-width:520px;margin:0 auto;min-height:100dvh}
+input[type=number]{-moz-appearance:textfield}
+input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none}
+button{font-family:inherit;cursor:pointer}
+.hd{background:linear-gradient(135deg,var(--ac),var(--ad));color:#fff;padding:20px 16px 14px;text-align:center}
+.hd h1{font-size:22px;font-weight:800;letter-spacing:.06em}
+.hd .sub{font-size:11px;opacity:.8;margin-top:3px}
+.hd .ver{font-size:10px;opacity:.5;margin-top:6px}
+.hd .who{font-size:14px;font-weight:600;margin-top:8px;background:rgba(255,255,255,.2);display:inline-block;padding:5px 16px;border-radius:8px}
+.nv{display:flex;background:var(--sf);border-bottom:2px solid var(--bd);position:sticky;top:0;z-index:100}
+.nv button{flex:1;padding:12px 4px;border:none;background:0 0;color:var(--mu);font-size:11px;font-weight:500;border-bottom:3px solid transparent;transition:all .2s}
+.nv button.on{background:var(--as);color:var(--ac);font-weight:700;border-bottom-color:var(--ac)}
+.pn{padding:16px 14px;display:none}.pn.show{display:block}
+.cd{background:var(--sf);border-radius:14px;border:1px solid var(--bd);padding:16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.03)}
+.lb{display:block;font-size:10px;font-weight:700;color:var(--mu);margin-bottom:4px;text-transform:uppercase;letter-spacing:.08em}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.kp{text-align:center;padding:10px 6px;border-radius:10px;background:var(--bg)}
+.kv{font-size:20px;font-weight:800;line-height:1.2}
+.kl{font-size:9px;color:var(--mu);margin-top:2px;text-transform:uppercase;letter-spacing:.04em}
+.tgl{display:flex;align-items:center;gap:8px;cursor:pointer;padding:4px 0}
+.tgl-sw{position:relative;width:40px;height:22px;border-radius:11px;transition:all .2s;flex-shrink:0}
+.tgl-sw::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:all .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.tgl-off{background:var(--dm)}
+.tgl-on{background:var(--cr)}
+.tgl-on::after{left:20px}
+.pick{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:20px 16px}
+.pick button{padding:12px 20px;border-radius:12px;border:2px solid var(--bd);background:var(--sf);font-size:15px;font-weight:600;color:var(--tx);transition:all .2s;min-width:120px}
+.pick button:active{transform:scale(.96)}
+.ft{text-align:center;padding:14px;font-size:9px;color:var(--dm);border-top:1px solid var(--bd)}
+</style>
+</head>
+<body>
+
+<div class="hd">
+  <h1>PACTO 1M</h1>
+  <div class="sub">Grupo Alatus &middot; ERA Porto Baixa Centro</div>
+  <div class="ver">v3.2 &middot; Quanto queres ganhar?</div>
+  <div class="who" id="whoLabel">Escolhe o teu nome</div>
+</div>
+
+<div id="pickScreen">
+  <div style="text-align:center;padding:30px 16px 10px">
+    <div style="font-size:18px;font-weight:700;color:var(--tx)">Quem és tu?</div>
+    <div style="font-size:12px;color:var(--mu);margin-top:4px">Seleciona o teu nome para carregar os teus dados</div>
+  </div>
+  <div class="pick" id="pickBtns"></div>
+</div>
+
+<div id="appMain" style="display:none">
+  <div class="nv" id="nav"></div>
+  <div class="pn show" id="pn-meu"></div>
+  <div class="pn" id="pn-equipa"></div>
+  <div class="pn" id="pn-dc"></div>
+</div>
+
+<div class="ft">
+  PALCORE &times; Paulo Branco &middot; DC Grupo Alatus &middot; v3.2 Mar 2026<br>
+  Valores fiscais estimados (Recibos Verdes) &mdash; consultar contabilista
+</div>
+
+<script>
+(function(){
+"use strict";
+
+var GOAL=1000000, T25=253838;
+
+var TEAM=[
+  {name:"Daniela",fat:56439,obj:126000,notes:"Pipeline R. Ant\u00F3nio Patr\u00EDcio"},
+  {name:"Leonor",fat:48606,obj:75000,notes:"Melhor efici\u00EAncia 2025 (65% do objetivo)"},
+  {name:"Andr\u00E9",fat:35813,obj:75000,notes:"Inclui carry Cedofeita 2024"},
+  {name:"Paula",fat:33725,obj:75000,notes:""},
+  {name:"Jo\u00E3o",fat:30425,obj:50400,notes:"Pipeline ativo: 13.375\u20AC"},
+  {name:"Jorge",fat:27525,obj:50400,notes:""},
+  {name:"Alexandra",fat:21305,obj:75000,notes:""}
+];
+
+var TAXA_COM=0.06;
+var CRED_PROB=0.25;
+var CRED_LTV=0.80;
+var CRED_BANK_PCT=0.0125;
+var CRED_CONS_PCT=0.30;
+var CRED_DC_PCT=0.075;
+
+var IRS=[{l:7703,r:.13,d:0},{l:11623,r:.18,d:385.15},{l:16472,r:.23,d:966.3},{l:21321,r:.26,d:1460.46},{l:27146,r:.3275,d:1898.11},{l:39791,r:.37,d:3051.32},{l:51997,r:.435,d:5636.47},{l:81199,r:.45,d:6416.44},{l:1e9,r:.48,d:8851.41}];
+
+function cIRS(a){if(a<=0)return 0;for(var i=0;i<IRS.length;i++){if(a<=IRS[i].l)return Math.max(0,a*IRS[i].r-IRS[i].d)}return 0}
+function g2n(g){var s=g*.7*.214,t=g*.75,i=cIRS(t);return{net:g-s-i,ss:s,irs:i}}
+function n2g(n){if(n<=0)return 0;var l=n,h=n*2.5;for(var it=0;it<50;it++){var m=(l+h)/2;var r=g2n(m);if(Math.abs(r.net-n)<1)return m;if(r.net<n)l=m;else h=m}return(l+h)/2}
+function fmt(n){return Math.round(n).toLocaleString("pt-PT")+" \u20AC"}
+function fK(n){if(n>=1e6)return(n/1e6).toFixed(2).replace(".",",")+"\u00A0M\u20AC";if(n>=1e3)return(n/1e3).toFixed(0)+"K\u00A0\u20AC";return Math.round(n)+"\u00A0\u20AC"}
+
+var PROFS=[
+  {id:"conservador",label:"Conservador",icon:"\uD83D\uDFE2",w:.165,
+   mix:"~6 neg\u00F3cios: 1 dupla n\u00E3o-exclusiva + 3 angaria\u00E7\u00F5es n\u00E3o-exclusivas + 2 vendas",
+   buyerRatio:0.5},
+  {id:"equilibrado",label:"Equilibrado",icon:"\uD83D\uDFE1",w:.22,
+   mix:"~6 neg\u00F3cios: 1 dupla exclusiva + 1 angaria\u00E7\u00E3o exclusiva + 2 angaria\u00E7\u00F5es n\u00E3o-exclusivas + 2 vendas",
+   buyerRatio:0.5},
+  {id:"ambicioso",label:"Ambicioso",icon:"\uD83D\uDD25",w:.28,
+   mix:"~6 neg\u00F3cios: 2 duplas exclusivas + 2 angaria\u00E7\u00F5es exclusivas + 1 angaria\u00E7\u00E3o n\u00E3o-exclusiva + 1 venda",
+   buyerRatio:0.5}
+];
+
+var state={me:null,desired:0,profile:"conservador",avgC:7500,locked:false,tab:"meu",credito:true};
+
+function me(){return state.me}
+function prof(){for(var i=0;i<PROFS.length;i++){if(PROFS[i].id===state.profile)return PROFS[i]}return PROFS[0]}
+
+function creditPerBuyerDeal(avgC){
+  var sv=avgC/TAXA_COM,fi=sv*CRED_LTV,bp=fi*CRED_BANK_PCT,cg=bp*CRED_CONS_PCT;
+  return{expected:cg*CRED_PROB,full:cg,saleValue:sv,financing:fi,bankPays:bp,dcFull:bp*CRED_DC_PCT,dcExpected:bp*CRED_DC_PCT*CRED_PROB};
+}
+
+function calc(){
+  var p=prof(),w=p.w,m=me();
+  if(!m)return{asked:false,w:w};
+  var e25g=m.fat*w,e25=g2n(e25g),e25m=e25.net/12;
+  if(state.desired<=0)return{e25m:e25m,asked:false,w:w};
+
+  var targetNetYear=state.desired*12;
+  var grossYear=n2g(targetNetYear);
+  var cr=creditPerBuyerDeal(state.avgC);
+  var creditBonusYear=0;
+
+  var arN=grossYear/w;
+  var deals=Math.ceil(arN/state.avgC);
+
+  if(state.credito){
+    var bd=deals*p.buyerRatio;
+    creditBonusYear=bd*cr.expected;
+    var adjGross=Math.max(0,grossYear-creditBonusYear);
+    arN=adjGross/w;
+    deals=Math.ceil(arN/state.avgC);
+    bd=deals*p.buyerRatio;
+    creditBonusYear=bd*cr.expected;
+  }
+
+  var dpm=deals/12;
+  var totalGross=deals*state.avgC*w+creditBonusYear;
+  var r=g2n(totalGross);
+  var gf=m.fat>0?arN/m.fat:999;
+
+  return{e25m:e25m,agRev:arN,gross:totalGross/12,netM:r.net/12,ss:r.ss/12,irs:r.irs/12,deals:deals,dpm:dpm,gf:gf,asked:true,w:w,creditYear:creditBonusYear,creditMonth:creditBonusYear/12,creditInfo:cr,buyerDeals:deals*p.buyerRatio};
+}
+
+function calcDC(){
+  var cc=calc();
+  if(!cc.asked)return{asked:false};
+  var n=7;
+  var teamAgRev=cc.agRev*n;
+  var dcBase=920*12;
+  var dcOverride=teamAgRev*0.0875;
+  var cr=creditPerBuyerDeal(state.avgC);
+  var teamBD=cc.deals*n*prof().buyerRatio;
+  var dcCreditYear=state.credito?teamBD*cr.dcExpected:0;
+  var dcGY=dcBase+dcOverride+dcCreditYear;
+  var dcR=g2n(dcGY);
+  return{asked:true,base:dcBase,override:dcOverride,creditYear:dcCreditYear,grossYear:dcGY,grossMonth:dcGY/12,netYear:dcR.net,netMonth:dcR.net/12,ss:dcR.ss,irs:dcR.irs,teamAgRev:teamAgRev,teamDeals:cc.deals*n};
+}
+
+function renderPick(){
+  var h="";
+  for(var i=0;i<TEAM.length;i++){
+    h+='<button data-pick="'+i+'">'+TEAM[i].name+"</button>";
+  }
+  document.getElementById("pickBtns").innerHTML=h;
+}
+
+document.addEventListener("click",function(e){
+  var el=e.target.closest("[data-pick]");
+  if(el){
+    state.me=TEAM[parseInt(el.dataset.pick)];
+    document.getElementById("pickScreen").style.display="none";
+    document.getElementById("appMain").style.display="block";
+    document.getElementById("whoLabel").textContent=state.me.name;
+    render();
+    return;
+  }
+  el=e.target.closest("[data-changename]");
+  if(el){
+    state.me=null;state.desired=0;state.locked=false;state.tab="meu";
+    document.getElementById("pickScreen").style.display="block";
+    document.getElementById("appMain").style.display="none";
+    document.getElementById("whoLabel").textContent="Escolhe o teu nome";
+    return;
+  }
+  el=e.target.closest("[data-tab]");
+  if(el){state.tab=el.dataset.tab;render();return}
+  el=e.target.closest("[data-desired]");
+  if(el){state.desired=parseInt(el.dataset.desired);render();return}
+  el=e.target.closest("[data-profile]");
+  if(el){state.profile=el.dataset.profile;render();return}
+  el=e.target.closest("[data-avgc]");
+  if(el){state.avgC=parseInt(el.dataset.avgc);render();return}
+  el=e.target.closest("[data-lock]");
+  if(el){state.locked=el.dataset.lock==="1";render();return}
+  el=e.target.closest("[data-credito]");
+  if(el){state.credito=el.dataset.credito==="1";render();return}
+  el=e.target.closest("[data-mailto]");
+  if(el){window.location.href=window._pactoMailto;return}
+});
+
+document.addEventListener("input",function(e){
+  if(e.target.id==="desiredInput"){
+    state.desired=Math.max(0,parseInt(e.target.value)||0);
+    renderMeu();
+  }
+});
+
+function renderNav(){
+  var tabs=[{id:"meu",label:"\uD83D\uDCCA O Meu Pacto"},{id:"equipa",label:"\uD83D\uDC65 Equipa"},{id:"dc",label:"\uD83C\uDFAF DC Paulo"}];
+  var h="";
+  for(var i=0;i<tabs.length;i++){
+    h+='<button class="'+(state.tab===tabs[i].id?"on":"")+'" data-tab="'+tabs[i].id+'">'+tabs[i].label+"</button>";
+  }
+  document.getElementById("nav").innerHTML=h;
+}
+
+function render(){
+  renderNav();
+  ["meu","equipa","dc"].forEach(function(p){
+    document.getElementById("pn-"+p).className="pn"+(state.tab===p?" show":"");
+  });
+  if(state.tab==="meu")renderMeu();
+  else if(state.tab==="equipa")renderEquipa();
+  else renderDC();
+}
+
+function renderMeu(){
+  var cc=calc(),p=prof(),m=me();
+  if(!m)return;
+  var isA=cc.asked;
+  var h="";
+
+  h+='<div class="cd" style="border-left:5px solid var(--ac)">';
+  h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">';
+  h+='<h2 style="font-size:20px;font-weight:800">'+m.name+'</h2>';
+  h+='<button data-changename="1" style="font-size:10px;padding:3px 10px;border-radius:8px;border:1px solid var(--bd);background:transparent;color:var(--mu)">Trocar</button>';
+  h+="</div>";
+  if(state.locked)h+='<span style="font-size:10px;padding:3px 10px;border-radius:12px;background:var(--gnb);color:var(--gn);font-weight:700;display:inline-block;margin-bottom:8px">PACTO \u2713</span>';
+  h+='<div class="lb">Resultado 2025</div>';
+  h+='<div class="g3">';
+  h+='<div class="kp"><div class="kv" style="color:var(--ac)">'+fK(m.fat)+'</div><div class="kl">fatura\u00E7\u00E3o</div></div>';
+  h+='<div class="kp"><div class="kv" style="color:var(--go)">'+Math.round(m.fat/m.obj*100)+'%</div><div class="kl">do objetivo</div></div>';
+  h+='<div class="kp"><div class="kv" style="color:var(--bu)">~'+fmt(cc.e25m)+'</div><div class="kl">l\u00EDq./m\u00EAs est.</div></div>';
+  h+="</div>";
+  if(m.notes)h+='<div style="font-size:11px;color:var(--mu);margin-top:8px;font-style:italic">'+m.notes+"</div>";
+  h+="</div>";
+
+  h+='<div class="cd" style="background:linear-gradient(135deg,var(--gb),#fff);border:2px solid var(--gc)">';
+  h+='<div style="text-align:center;margin-bottom:10px">';
+  h+='<div style="font-size:15px;font-weight:700;color:var(--go)">'+m.name+', quanto queres ganhar por m\u00EAs?</div>';
+  h+='<div style="font-size:11px;color:var(--mu);margin-top:2px">Valor l\u00EDquido, depois de impostos</div></div>';
+  h+='<div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px">';
+  h+='<input type="number" id="desiredInput" value="'+(state.desired||"")+'" placeholder="0" style="width:160px;padding:14px 8px;font-size:32px;font-weight:800;text-align:center;border:2px solid var(--gc);border-radius:12px;color:var(--go);background:#fff;outline:none;font-family:inherit">';
+  h+='<span style="font-size:16px;font-weight:600;color:var(--mu)">\u20AC/m\u00EAs</span></div>';
+  h+='<div style="display:flex;gap:5px;justify-content:center;flex-wrap:wrap">';
+  var vals=[800,1000,1500,2000,2500,3000,4000];
+  for(var i=0;i<vals.length;i++){
+    var sel=state.desired===vals[i];
+    h+='<button data-desired="'+vals[i]+'" style="padding:5px 10px;border-radius:12px;border:'+(sel?"2px solid var(--go)":"1px solid var(--bd)")+";background:"+(sel?"var(--gb)":"transparent")+";color:"+(sel?"var(--go)":"var(--mu)")+';font-size:11px;font-weight:600">'+vals[i].toLocaleString("pt-PT")+"\u20AC</button>";
+  }
+  h+="</div></div>";
+
+  h+='<div class="cd"><div class="lb">Perfil de neg\u00F3cio</div><div style="display:flex;gap:6px">';
+  for(var i=0;i<PROFS.length;i++){
+    var pr=PROFS[i],sel2=state.profile===pr.id;
+    h+='<button data-profile="'+pr.id+'" style="flex:1;padding:10px 6px;border-radius:10px;text-align:center;border:'+(sel2?"2px solid var(--bu)":"1px solid var(--bd)")+";background:"+(sel2?"var(--bb)":"transparent")+'">';
+    h+='<div style="font-size:16px">'+pr.icon+"</div>";
+    h+='<div style="font-size:11px;font-weight:700;color:'+(sel2?"var(--bu)":"var(--md)")+'">'+pr.label+"</div>";
+    h+='<div style="font-size:9px;color:var(--mu);margin-top:2px">'+(pr.w*100).toFixed(1)+"% da com.</div>";
+    h+="</button>";
+  }
+  h+="</div>";
+  h+='<div style="font-size:11px;color:var(--md);margin-top:8px;line-height:1.5;padding:8px;background:var(--bg);border-radius:8px">'+p.mix+"</div>";
+
+  h+='<div style="margin-top:12px"><div class="lb">Comiss\u00E3o m\u00E9dia/neg\u00F3cio</div><div style="display:flex;gap:4px;flex-wrap:wrap">';
+  var comms=[5000,7500,10000,12500,15000];
+  for(var i=0;i<comms.length;i++){
+    var sel3=state.avgC===comms[i];
+    h+='<button data-avgc="'+comms[i]+'" style="padding:5px 8px;border-radius:8px;border:'+(sel3?"2px solid var(--bu)":"1px solid var(--bd)")+";background:"+(sel3?"var(--bb)":"transparent")+";color:"+(sel3?"var(--bu)":"var(--mu)")+';font-size:11px;font-weight:600">'+fK(comms[i])+"</button>";
+  }
+  h+="</div></div>";
+
+  h+='<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--bl)">';
+  h+='<div data-credito="'+(state.credito?"0":"1")+'" class="tgl">';
+  h+='<div class="tgl-sw '+(state.credito?"tgl-on":"tgl-off")+'"></div>';
+  h+='<div><div style="font-size:12px;font-weight:600;color:'+(state.credito?"var(--cr)":"var(--mu)")+'">Incluir intermedia\u00E7\u00E3o de cr\u00E9dito</div>';
+  h+='<div style="font-size:10px;color:var(--mu)">B\u00F3nus esperado por neg\u00F3cio com comprador</div></div>';
+  h+="</div></div>";
+  h+="</div>";
+
+  if(isA){
+    var ok=cc.gf<=3;
+    var bgC=ok?"var(--gnb)":"var(--db)";
+    var bdC=ok?"var(--gnc)":"#FECACA";
+    var stC=ok?"var(--gn)":"var(--dg)";
+    var stTxt=ok?"\u2705 Ating\u00EDvel com foco":(cc.gf>3?"\u26A0\uFE0F Crescimento muito exigente":"\uD83C\uDFAF Desafiante mas poss\u00EDvel");
+
+    h+='<div class="cd" style="background:linear-gradient(135deg,'+bgC+',#fff);border:2px solid '+bdC+'">';
+    h+='<div style="text-align:center;margin-bottom:14px"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:'+stC+'">'+stTxt+"</div></div>";
+
+    h+='<div class="g2" style="margin-bottom:14px">';
+    h+='<div class="kp" style="background:var(--gnb);border:1px solid var(--gnc)"><div style="font-size:9px;color:var(--mu)">QUER GANHAR</div><div class="kv" style="color:var(--gn)">'+fmt(state.desired)+'</div><div class="kl">l\u00EDquido/m\u00EAs</div></div>';
+    h+='<div class="kp" style="background:'+(ok?"var(--gnb)":"var(--db)")+";border:1px solid "+(ok?"var(--gnc)":"#FECACA")+'"><div style="font-size:9px;color:var(--mu)">PRECISA FATURAR</div><div class="kv" style="color:'+(ok?"var(--bu)":"var(--dg)")+'">'+fK(cc.agRev)+'</div><div class="kl">ag\u00EAncia/ano</div></div>';
+    h+="</div>";
+
+    var gfc=cc.gf<=1.5?"var(--gn)":cc.gf<=3?"var(--go)":"var(--dg)";
+    var gfb=cc.gf<=1.5?"var(--gnb)":cc.gf<=3?"var(--gb)":"var(--db)";
+    var mx=Math.max(m.fat,cc.agRev);
+    h+='<div style="background:var(--bg);border-radius:10px;padding:12px;margin-bottom:12px">';
+    h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">';
+    h+='<span style="font-size:11px;font-weight:700;color:var(--md)">2025 \u2192 2026</span>';
+    h+='<span style="font-size:12px;font-weight:800;padding:2px 8px;border-radius:8px;background:'+gfb+";color:"+gfc+'">\u00D7'+cc.gf.toFixed(1)+"</span></div>";
+    h+='<div style="display:flex;align-items:center;gap:8px">';
+    h+='<div style="flex:1"><div style="height:8px;border-radius:4px;background:var(--bl);overflow:hidden"><div style="height:100%;width:'+Math.min(100,m.fat/mx*100)+'%;background:var(--dm);border-radius:4px"></div></div>';
+    h+='<div style="font-size:10px;color:var(--dm);margin-top:2px">'+fK(m.fat)+" (2025)</div></div>";
+    h+='<div style="font-size:14px;color:var(--mu)">\u2192</div>';
+    h+='<div style="flex:1"><div style="height:8px;border-radius:4px;background:var(--bl);overflow:hidden"><div style="height:100%;width:100%;background:'+(ok?"var(--gn)":"var(--or)")+';border-radius:4px"></div></div>';
+    h+='<div style="font-size:10px;color:'+(ok?"var(--gn)":"var(--or)")+';font-weight:700;margin-top:2px">'+fK(cc.agRev)+" (2026)</div></div>";
+    h+="</div></div>";
+
+    h+='<div class="g3" style="margin-bottom:12px">';
+    h+='<div class="kp"><div class="kv" style="color:var(--ac)">'+cc.deals+'</div><div class="kl">neg\u00F3cios/ano</div></div>';
+    h+='<div class="kp"><div class="kv" style="color:var(--go)">'+cc.dpm.toFixed(1).replace(".",",")+'</div><div class="kl">neg\u00F3cios/m\u00EAs</div></div>';
+    h+='<div class="kp"><div class="kv" style="color:var(--bu)">'+fmt(cc.gross)+'</div><div class="kl">bruto/m\u00EAs</div></div>';
+    h+="</div>";
+
+    h+='<div style="background:var(--bg);border-radius:8px;padding:10px;margin-bottom:12px">';
+    h+='<div style="font-size:9px;font-weight:700;color:var(--mu);text-transform:uppercase;margin-bottom:6px">Fiscal (Recibos Verdes)</div>';
+    var commGross=(cc.gross*12-cc.creditYear)/12;
+    h+='<div style="display:flex;justify-content:space-between;font-size:11px;padding:2px 0"><span style="color:var(--md)">Comiss\u00F5es/m\u00EAs</span><span style="font-weight:600;color:var(--md)">'+fmt(commGross)+"</span></div>";
+    if(state.credito&&cc.creditMonth>0){
+      h+='<div style="display:flex;justify-content:space-between;font-size:11px;padding:2px 0"><span style="color:var(--cr)">+ Cr\u00E9dito (esperado)</span><span style="font-weight:600;color:var(--cr)">+'+fmt(cc.creditMonth)+"</span></div>";
+    }
+    h+='<div style="display:flex;justify-content:space-between;font-size:11px;padding:4px 0;font-weight:600;border-top:1px dashed var(--bd);margin-top:2px;padding-top:4px"><span style="color:var(--md)">Bruto total/m\u00EAs</span><span style="color:var(--md)">'+fmt(cc.gross)+"</span></div>";
+    h+='<div style="display:flex;justify-content:space-between;font-size:11px;padding:2px 0"><span style="color:var(--md)">\u2212 Seg. Social</span><span style="color:var(--or);font-weight:600">\u2212'+fmt(cc.ss)+"</span></div>";
+    h+='<div style="display:flex;justify-content:space-between;font-size:11px;padding:2px 0"><span style="color:var(--md)">\u2212 IRS</span><span style="color:var(--or);font-weight:600">\u2212'+fmt(cc.irs)+"</span></div>";
+    h+='<div style="display:flex;justify-content:space-between;font-size:11px;padding:4px 0;font-weight:700;border-top:1px solid var(--bd);margin-top:2px"><span>= L\u00EDquido/m\u00EAs</span><span style="color:var(--gn)">'+fmt(cc.netM)+"</span></div>";
+    h+="</div>";
+
+    if(state.credito&&cc.creditMonth>0){
+      var cr=cc.creditInfo;
+      h+='<div style="background:var(--crb);border:1px solid var(--crc);border-radius:10px;padding:12px;margin-bottom:12px">';
+      h+='<div style="font-size:10px;font-weight:700;color:var(--cr);text-transform:uppercase;margin-bottom:6px">\uD83C\uDFE6 Intermedia\u00E7\u00E3o de Cr\u00E9dito</div>';
+      h+='<div style="font-size:11px;color:var(--md);line-height:1.6">';
+      h+='Valor m\u00E9dio de venda: <strong>'+fK(cr.saleValue)+'</strong> (comiss\u00E3o '+TAXA_COM*100+'%)<br>';
+      h+='Financiamento (80%): <strong>'+fK(cr.financing)+'</strong><br>';
+      h+='Banco paga \u00E0 empresa (1,25%): <strong>'+fmt(cr.bankPays)+'</strong><br>';
+      h+='Tu recebes (30%): <strong>'+fmt(cr.full)+'</strong> por opera\u00E7\u00E3o<br>';
+      h+='<span style="color:var(--mu)">Probabilidade: 25% dos neg\u00F3cios com comprador</span><br>';
+      h+='<strong style="color:var(--cr)">'+Math.round(cc.buyerDeals)+' neg. com comprador \u00D7 25% = ~'+Math.max(1,Math.round(cc.buyerDeals*0.25))+' opera\u00E7\u00F5es \u2192 '+fmt(cc.creditYear)+'/ano</strong>';
+      h+="</div></div>";
+    }
+
+    h+='<div class="cd"><div class="lb">Atividade mensal necess\u00E1ria</div>';
+    var funnel=[{l:"Contactos",m:80,i:"\uD83D\uDCDE"},{l:"Qualificados",m:20,i:"\uD83C\uDFAF"},{l:"Apresenta\u00E7\u00F5es de Servi\u00E7o",m:6,i:"\uD83D\uDCCA"},{l:"Angaria\u00E7\u00F5es",m:3,i:"\uD83D\uDD11"},{l:"Escrituras",m:1,i:"\u2705"}];
+    for(var i=0;i<funnel.length;i++){
+      var v=cc.dpm*funnel[i].m;
+      var bdr=i<funnel.length-1?"border-bottom:1px solid var(--bl);":"";
+      h+='<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:12px;'+bdr+'"><span style="color:var(--md)">'+funnel[i].i+" "+funnel[i].l+'</span><span style="font-weight:700;font-size:14px">'+(v<1?v.toFixed(1).replace(".",","):Math.ceil(v))+"</span></div>";
+    }
+    h+="</div>";
+
+    if(state.profile==="conservador"){
+      var altGross=n2g(state.desired*12);
+      var alt=Math.ceil((altGross/.22)/state.avgC);
+      h+='<div style="padding:10px;background:var(--gb);border-radius:8px;border:1px solid var(--gc);margin-bottom:12px">';
+      h+='<div style="font-size:12px;font-weight:700;color:var(--go);margin-bottom:4px">\uD83D\uDCA1 E se apostasses na exclusividade?</div>';
+      h+='<div style="font-size:12px;color:var(--md);line-height:1.5">Com perfil <strong>Equilibrado</strong>, precisarias de apenas <strong>'+alt+"</strong> neg\u00F3cios em vez de "+cc.deals+". Cada exclusivo vale +33% na tua comiss\u00E3o.</div></div>";
+    }
+
+    var dt=new Date();
+    var dd=dt.getDate()+"/"+(dt.getMonth()+1)+"/"+dt.getFullYear();
+    var subj="PACTO 1M - "+m.name;
+    var body=m.name+"\n\n";
+    body+="Quero ganhar: "+Math.round(state.desired).toLocaleString("pt-PT")+" EUR liq./mes\n";
+    body+="Perfil: "+p.label+" ("+(p.w*100).toFixed(1)+"%)\n";
+    body+="Negocios: "+cc.deals+"/ano ("+cc.dpm.toFixed(1).replace(".",",")+"/mes)\n";
+    body+="Faturacao agencia: "+fK(cc.agRev).replace(/\u00A0/g," ")+"\n";
+    body+="Crescimento vs 2025: x"+cc.gf.toFixed(1)+"\n";
+    body+="Comissao media: "+fK(state.avgC).replace(/\u00A0/g," ")+"\n";
+    body+="Credito: "+(state.credito?"Incluido ("+fmt(cc.creditYear).replace(/\u00A0/g," ")+"/ano)":"Nao incluido")+"\n";
+    body+="Data: "+dd+"\n\n";
+    body+="Assumo este compromisso.";
+    window._pactoMailto="mailto:paulo.branco@gmail.com?subject="+encodeURIComponent(subj)+"&body="+encodeURIComponent(body);
+
+    h+='<button data-mailto="1" style="display:block;width:100%;text-align:center;padding:14px;background:var(--ac);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;margin-top:8px;cursor:pointer">\uD83E\uDD1D Assumo este compromisso</button>';
+    h+="</div>";
+  } else {
+    h+='<div style="text-align:center;padding:30px;color:var(--dm)"><div style="font-size:28px">\uD83D\uDC46</div><div style="font-size:13px;margin-top:8px">Preenche o valor desejado para ver o teu plano</div></div>';
+  }
+
+  document.getElementById("pn-meu").innerHTML=h;
+}
+
+function renderEquipa(){
+  var cc=calc(),m=me();
+  var h='<h2 style="font-size:17px;font-weight:700;border-left:4px solid var(--ac);padding-left:10px;margin-bottom:14px">A Nossa Equipa</h2>';
+
+  h+='<div class="cd" style="text-align:center">';
+  h+='<div style="font-size:10px;font-weight:700;color:var(--mu);text-transform:uppercase;margin-bottom:8px">Objetivo 2026</div>';
+  h+='<div style="font-size:34px;font-weight:800;color:var(--ac)">1.000.000 \u20AC</div>';
+  h+='<div style="font-size:12px;color:var(--md);margin-top:4px">10 meses \u00B7 7 consultores</div>';
+  h+='<div style="margin-top:12px">';
+  h+='<div style="height:14px;border-radius:7px;background:var(--bl);overflow:hidden">';
+  h+='<div style="height:100%;width:'+Math.min(100,T25/GOAL*100)+'%;background:var(--ac);border-radius:7px"></div></div>';
+  h+='<div style="font-size:11px;color:var(--ac);font-weight:700;margin-top:4px">Base 2025: '+fK(T25)+" ("+Math.round(T25/GOAL*100)+"%)</div>";
+  h+="</div></div>";
+
+  h+='<div class="cd" style="background:var(--ob);border:1px solid var(--gc)">';
+  h+='<div style="font-size:12px;font-weight:700;color:var(--or);margin-bottom:6px">O desafio</div>';
+  h+='<div style="font-size:12px;color:var(--md);line-height:1.6">Em 2025 fatur\u00E1mos <strong>'+fK(T25)+"</strong> como equipa. Para chegar ao <strong>\u20AC1M</strong>, precisamos de crescer <strong>\u00D7"+(GOAL/T25).toFixed(1)+"</strong>. Mais neg\u00F3cios, mais exclusivos, e possivelmente novos colegas.</div>";
+  h+="</div>";
+
+  h+='<div class="cd"><div class="lb">Contribui\u00E7\u00E3o 2025 por consultor</div>';
+  var sorted=TEAM.slice().sort(function(a,b){return b.fat-a.fat});
+  for(var i=0;i<sorted.length;i++){
+    var t=sorted[i];
+    var isMe=m&&t.name===m.name;
+    var pctT=t.fat/T25*100;
+    if(isMe)h+='<div style="background:var(--as);border-radius:10px;padding:10px;margin-bottom:10px">';
+    else h+='<div style="margin-bottom:10px">';
+    h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">';
+    h+='<span style="font-size:13px;font-weight:'+(isMe?"800":"600")+";color:"+(isMe?"var(--ac)":"var(--tx)")+'">'+t.name+(isMe?" (eu)":"")+"</span>";
+    h+='<span style="font-size:12px;font-weight:700;color:var(--ac)">'+fK(t.fat)+"</span></div>";
+    h+='<div style="height:5px;border-radius:3px;background:var(--bl);overflow:hidden"><div style="height:100%;width:'+Math.min(100,pctT)+"%;background:"+(isMe?"var(--ac)":"var(--dm)")+';border-radius:3px"></div></div>';
+    h+='<div style="font-size:10px;color:var(--mu);margin-top:2px">'+Math.round(pctT)+"% da equipa</div>";
+    h+="</div>";
+  }
+  h+="</div>";
+
+  if(cc.asked){
+    h+='<div class="cd" style="border-left:5px solid var(--ac);background:var(--as)">';
+    h+='<div class="lb">O meu compromisso para 2026</div>';
+    h+='<div class="g3">';
+    h+='<div class="kp"><div class="kv" style="color:var(--ac)">'+fK(cc.agRev)+'</div><div class="kl">fatura\u00E7\u00E3o</div></div>';
+    h+='<div class="kp"><div class="kv" style="color:var(--go)">'+cc.deals+'</div><div class="kl">neg\u00F3cios</div></div>';
+    h+='<div class="kp"><div class="kv" style="color:var(--bu)">'+Math.round(cc.agRev/GOAL*100)+'%</div><div class="kl">do \u20AC1M</div></div>';
+    h+="</div></div>";
+  }
+
+  var perP=Math.ceil(GOAL/7);
+  h+='<div class="cd"><div class="lb">M\u00E9dia necess\u00E1ria por consultor</div>';
+  h+='<div style="text-align:center;padding:8px">';
+  h+='<div style="font-size:28px;font-weight:800;color:var(--go)">'+fK(perP)+"</div>";
+  h+='<div style="font-size:11px;color:var(--mu);margin-top:4px">por consultor/ano = '+fK(perP/12)+"/m\u00EAs para a ag\u00EAncia</div>";
+  h+="</div></div>";
+
+  document.getElementById("pn-equipa").innerHTML=h;
+}
+
+function renderDC(){
+  var dc=calcDC(),p=prof();
+  var h='<h2 style="font-size:17px;font-weight:700;border-left:4px solid var(--ac);padding-left:10px;margin-bottom:14px">Paulo Branco \u2014 Diretor Comercial</h2>';
+
+  if(!dc.asked){
+    h+='<div style="text-align:center;padding:30px;color:var(--dm)"><div style="font-size:28px">\uD83D\uDC46</div><div style="font-size:13px;margin-top:8px">Define primeiro o objetivo no separador "O Meu Pacto"</div></div>';
+    document.getElementById("pn-dc").innerHTML=h;
+    return;
+  }
+
+  h+='<div class="cd" style="background:var(--bb);border:1px solid #93B4F0">';
+  h+='<div style="font-size:10px;font-weight:700;color:var(--bu);text-transform:uppercase;margin-bottom:6px">Cen\u00E1rio simulado</div>';
+  h+='<div style="font-size:12px;color:var(--md);line-height:1.6">';
+  h+='Se os 7 consultores com perfil <strong>'+p.label+'</strong> atingirem o objetivo definido:<br>';
+  h+='Fatura\u00E7\u00E3o total da equipa: <strong>'+fK(dc.teamAgRev)+'</strong><br>';
+  h+='Total de neg\u00F3cios: <strong>'+dc.teamDeals+'</strong>';
+  h+="</div></div>";
+
+  h+='<div class="cd">';
+  h+='<div class="lb">Rendimento mensal estimado</div>';
+  h+='<div style="background:var(--bg);border-radius:8px;padding:10px;margin-top:8px">';
+  h+='<div style="display:flex;justify-content:space-between;font-size:11px;padding:3px 0"><span style="color:var(--md)">Base (SMN)</span><span style="font-weight:600">'+fmt(dc.base/12)+"</span></div>";
+  h+='<div style="display:flex;justify-content:space-between;font-size:11px;padding:3px 0"><span style="color:var(--md)">Override 8,75%</span><span style="font-weight:600;color:var(--bu)">'+fmt(dc.override/12)+"</span></div>";
+  if(state.credito&&dc.creditYear>0){
+    h+='<div style="display:flex;justify-content:space-between;font-size:11px;padding:3px 0"><span style="color:var(--cr)">Cr\u00E9dito 7,5%</span><span style="font-weight:600;color:var(--cr)">'+fmt(dc.creditYear/12)+"</span></div>";
+  }
+  h+='<div style="display:flex;justify-content:space-between;font-size:11px;padding:4px 0;font-weight:600;border-top:1px dashed var(--bd);margin-top:2px;padding-top:4px"><span>Bruto total/m\u00EAs</span><span>'+fmt(dc.grossMonth)+"</span></div>";
+  h+='<div style="display:flex;justify-content:space-between;font-size:11px;padding:2px 0"><span style="color:var(--md)">\u2212 Seg. Social</span><span style="color:var(--or)">\u2212'+fmt(dc.ss/12)+"</span></div>";
+  h+='<div style="display:flex;justify-content:space-between;font-size:11px;padding:2px 0"><span style="color:var(--md)">\u2212 IRS</span><span style="color:var(--or)">\u2212'+fmt(dc.irs/12)+"</span></div>";
+  h+='<div style="display:flex;justify-content:space-between;font-size:12px;padding:6px 0;font-weight:800;border-top:2px solid var(--bd);margin-top:4px"><span style="color:var(--gn)">= L\u00EDquido/m\u00EAs</span><span style="color:var(--gn)">'+fmt(dc.netMonth)+"</span></div>";
+  h+="</div>";
+
+  h+='<div class="g3" style="margin-top:12px">';
+  h+='<div class="kp" style="background:var(--gnb);border:1px solid var(--gnc)"><div class="kv" style="color:var(--gn);font-size:18px">'+fK(dc.netYear)+'</div><div class="kl">l\u00EDquido/ano</div></div>';
+  h+='<div class="kp"><div class="kv" style="color:var(--bu);font-size:18px">'+fK(dc.grossYear)+'</div><div class="kl">bruto/ano</div></div>';
+  h+='<div class="kp"><div class="kv" style="color:var(--ac);font-size:18px">'+fK(dc.teamAgRev)+'</div><div class="kl">fat. equipa</div></div>';
+  h+="</div>";
+  h+="</div>";
+
+  h+='<div class="cd" style="border-left:5px solid var(--gc)">';
+  h+='<div class="lb">Estrutura DC</div>';
+  h+='<div style="font-size:12px;color:var(--md);line-height:1.8">';
+  h+='<strong>Base:</strong> 920 \u20AC/m\u00EAs (SMN)<br>';
+  h+='<strong>Override:</strong> 8,75% da fatura\u00E7\u00E3o total da equipa<br>';
+  if(state.credito){h+='<strong style="color:var(--cr)">Cr\u00E9dito:</strong> 7,5% do valor pago pelo banco \u00E0 empresa';}
+  h+="</div></div>";
+
+  document.getElementById("pn-dc").innerHTML=h;
+}
+
+renderPick();
+})();
+</script>
+</body>
+</html>
